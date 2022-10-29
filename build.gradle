@@ -1,0 +1,31 @@
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+group 'com.cryosleeper.gradle'
+version '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.jayway.jsonpath:json-path:2.7.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.4.2'
+    testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
+}
+
+gradlePlugin {
+    plugins {
+        fileDiff {
+            id = "com.cryosleeper.gradle.jsonmod"
+            implementationClass = 'com.cryosleeper.gradle.jsonmod.JsonModificationPlugin'
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
