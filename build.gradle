@@ -8,6 +8,8 @@ plugins {
 group 'com.cryosleeper.gradle'
 version '0.1.0'
 
+java.sourceCompatibility = JavaVersion.VERSION_1_8
+
 repositories {
     mavenCentral()
 }

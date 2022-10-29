@@ -15,7 +15,7 @@ class JsonModificationPluginTest extends Specification {
         buildFile = new File(testProjectDir, 'build.gradle')
         buildFile << """
             plugins {
-                id 'com.cryosleeper.gradle.jsonmod'
+                id 'com.cryosleeper.gradle.json-modification'
             }
         """
     }

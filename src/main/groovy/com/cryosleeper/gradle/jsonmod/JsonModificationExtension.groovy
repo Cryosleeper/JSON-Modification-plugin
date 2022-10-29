@@ -4,13 +4,14 @@ abstract class JsonModificationExtension {
 
     abstract boolean allowDelete = false
 
-    List<Modification> modifications = new LinkedList()
+    protected List<Modification> modifications = new LinkedList()
 
-    def modification(Closure closure) {
+    Modification modification(Closure closure) {
         Modification modification = new Modification()
         closure.delegate = modification
         closure()
         modifications.add(modification)
+        modification
     }
 }
 
