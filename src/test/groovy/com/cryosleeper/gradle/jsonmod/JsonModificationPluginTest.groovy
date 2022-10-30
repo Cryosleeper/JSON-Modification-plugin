@@ -323,9 +323,9 @@ class JsonModificationPluginTest extends Specification {
     def "Add item"() {
         given:
         File input = new File(testProjectDir, 'input.json')
-        input << '{"key1": "value1", "key2": {"innerKey": "innerValue"}}'
+        input << '{"key1": "value1", "key2": {"innerKey": "innerValue", "innerKey3": {}}}'
         File diff = new File(testProjectDir, 'diff.json')
-        diff << '{"key3":  "value3", "key2.innerKey2": "innerValue2"}'
+        diff << '{"key3":  "value3", "key2.innerKey2": "innerValue2", "key2.innerKey3.innerInnerKey": "innerInnerValue"}'
         String output = 'output.json'
 
         buildFile << """
@@ -347,11 +347,11 @@ class JsonModificationPluginTest extends Specification {
                 .build()
 
         then:
-        result.output.contains('{"key1":"value1","key2":{"innerKey":"innerValue","innerKey2":"innerValue2"},"key3":"value3"}')
+        result.output.contains('{"key1":"value1","key2":{"innerKey":"innerValue","innerKey3":{"innerInnerKey":"innerInnerValue"},"innerKey2":"innerValue2"},"key3":"value3"}')
         result.task(':modifyJsons').outcome == SUCCESS
 
         File outputFile = new File(testProjectDir, output)
-        outputFile.text == '{"key1":"value1","key2":{"innerKey":"innerValue","innerKey2":"innerValue2"},"key3":"value3"}'
+        outputFile.text == '{"key1":"value1","key2":{"innerKey":"innerValue","innerKey3":{"innerInnerKey":"innerInnerValue"},"innerKey2":"innerValue2"},"key3":"value3"}'
     }
 
     def "Diff with different JsonPath formats"() {
