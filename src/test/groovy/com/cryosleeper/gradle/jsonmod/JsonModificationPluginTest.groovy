@@ -354,6 +354,40 @@ class JsonModificationPluginTest extends Specification {
         outputFile.text == '{"key1":"value1","key2":{"innerKey":"innerValue","innerKey3":{"innerInnerKey":"innerInnerValue"},"innerKey2":"innerValue2"},"key3":"value3"}'
     }
 
+    def "Remove items from an array"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"arrayKey":[1,"2",true]}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"arrayKey[2]":  null, "arrayKey[1]": null, "arrayKey[0]": null}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                modification {
+                    allowDelete true
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"arrayKey":[]}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"arrayKey":[]}'
+    }
+
     def "Diff with different JsonPath formats"() {
         given:
         File input = new File(testProjectDir, 'input.json')
