@@ -25,17 +25,7 @@ abstract class JsonModificationTask extends DefaultTask {
                 JsonNode node = new ObjectMapper().readTree(diff.text)
                 node.fields().forEachRemaining {
                     try {
-                        switch (it.value.nodeType) {
-                            case JsonNodeType.NULL:
-                                if (isDeleting)
-                                    parsedInput.delete("\$.${it.key}")
-                                else
-                                    System.err.println("Deletion failed for key ${it.key} - deletion forbidden!"); break
-                            case JsonNodeType.BOOLEAN: parsedInput.set("\$.${it.key}", it.value.booleanValue()); break
-                            case JsonNodeType.NUMBER: parsedInput.set("\$.${it.key}", it.value.numberValue()); break
-                            case JsonNodeType.STRING: parsedInput.set("\$.${it.key}", it.value.textValue()); break
-                            default: System.err.println("Modification failed for key ${it.key} due to using an unsupported value type")
-                        }
+                        applySingleChange(parsedInput, it.key, it.value)
                     } catch (Exception e) {
                         System.err.println("Modification failed for key ${it.key} with $e")
                     }
@@ -45,6 +35,20 @@ abstract class JsonModificationTask extends DefaultTask {
             it.output.delete()
             it.output.write(result)
             println result
+        }
+    }
+
+    void applySingleChange(DocumentContext input, String key, JsonNode value) {
+        switch (value.nodeType) {
+            case JsonNodeType.NULL:
+                if (isDeleting)
+                    input.delete("\$.${key}")
+                else
+                    System.err.println("Deletion failed for key ${key} - deletion forbidden!"); break
+            case JsonNodeType.BOOLEAN: input.set("\$.${key}", value.booleanValue()); break
+            case JsonNodeType.NUMBER: input.set("\$.${key}", value.numberValue()); break
+            case JsonNodeType.STRING: input.set("\$.${key}", value.textValue()); break
+            default: System.err.println("Modification failed for key ${key} due to using an unsupported value type")
         }
     }
 }
