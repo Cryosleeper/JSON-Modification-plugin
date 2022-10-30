@@ -13,6 +13,8 @@ abstract class JsonModificationTask extends DefaultTask {
     @Internal
     boolean isDeleting
     @Internal
+    boolean isAdding
+    @Internal
     List<Modification> modifications
 
     JsonModificationTask() {}
@@ -25,6 +27,9 @@ abstract class JsonModificationTask extends DefaultTask {
                 JsonNode node = new ObjectMapper().readTree(diff.text)
                 node.fields().forEachRemaining {
                     try {
+                        if (isAdding) {
+                            makeSureEntryExists(parsedInput, it.key)
+                        }
                         applySingleChange(parsedInput, it.key, it.value)
                     } catch (Exception e) {
                         System.err.println("Modification failed for key ${it.key} with $e")
@@ -36,6 +41,22 @@ abstract class JsonModificationTask extends DefaultTask {
             it.output.write(result)
             println result
         }
+    }
+
+    void makeSureEntryExists(DocumentContext input, String path) {
+        path = path.replace(".['", ".").replace("']", "").replace("['", "")
+        String key = path.split("[.]").last()
+        System.err.println("Adding key $key")
+        String parent = path.substring(0, path.lastIndexOf(key))
+        if (parent.endsWith(".")) {
+            parent = parent.substring(0, parent.length()-1)
+        }
+        parent = convertToJsonPath(parent)
+        System.err.println("Adding path $parent")
+        if (!JsonPath.isPathDefinite(path)) {
+            System.err.println("Path ${path} is not definite, can't create an entry if required!")
+        }
+        input.put(parent, key, "")
     }
 
     void applySingleChange(DocumentContext input, String key, JsonNode value) {
@@ -55,7 +76,9 @@ abstract class JsonModificationTask extends DefaultTask {
 
     private String convertToJsonPath(String key) {
         String modifiedKey
-        if (!key.startsWith("\$")) {
+        if (key.isEmpty()) {
+            modifiedKey = "\$"
+        } else if (!key.startsWith("\$")) {
             modifiedKey = "\$.$key"
         } else {
             modifiedKey = key

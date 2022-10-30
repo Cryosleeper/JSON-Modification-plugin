@@ -320,6 +320,40 @@ class JsonModificationPluginTest extends Specification {
         outputFile.text == '{"key1":"value1","key2":"value2"}'
     }
 
+    def "Add item"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"key1": "value1", "key2": {"innerKey": "innerValue"}}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"key3":  "value3", "key2.innerKey2": "innerValue2"}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"key1":"value1","key2":{"innerKey":"innerValue","innerKey2":"innerValue2"},"key3":"value3"}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"key1":"value1","key2":{"innerKey":"innerValue","innerKey2":"innerValue2"},"key3":"value3"}'
+    }
+
     def "Diff with different JsonPath formats"() {
         given:
         File input = new File(testProjectDir, 'input.json')
