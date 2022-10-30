@@ -39,16 +39,27 @@ abstract class JsonModificationTask extends DefaultTask {
     }
 
     void applySingleChange(DocumentContext input, String key, JsonNode value) {
+        String modifiedKey = convertToJsonPath(key)
         switch (value.nodeType) {
             case JsonNodeType.NULL:
                 if (isDeleting)
-                    input.delete("\$.${key}")
+                    input.delete(modifiedKey)
                 else
                     System.err.println("Deletion failed for key ${key} - deletion forbidden!"); break
-            case JsonNodeType.BOOLEAN: input.set("\$.${key}", value.booleanValue()); break
-            case JsonNodeType.NUMBER: input.set("\$.${key}", value.numberValue()); break
-            case JsonNodeType.STRING: input.set("\$.${key}", value.textValue()); break
+            case JsonNodeType.BOOLEAN: input.set(modifiedKey, value.booleanValue()); break
+            case JsonNodeType.NUMBER: input.set(modifiedKey, value.numberValue()); break
+            case JsonNodeType.STRING: input.set(modifiedKey, value.textValue()); break
             default: System.err.println("Modification failed for key ${key} due to using an unsupported value type")
         }
+    }
+
+    private String convertToJsonPath(String key) {
+        String modifiedKey
+        if (!key.startsWith("\$")) {
+            modifiedKey = "\$.$key"
+        } else {
+            modifiedKey = key
+        }
+        modifiedKey
     }
 }
