@@ -12,5 +12,9 @@ class JsonModificationPlugin implements Plugin<Project> {
             isDeleting = project.modifyJsons.allowDelete
             modifications = project.modifyJsons.modifications
         }
+
+        project.tasks.register("modifySingleJson", SingleJsonModificationTask) {
+            //TODO
+        }
     }
 }
