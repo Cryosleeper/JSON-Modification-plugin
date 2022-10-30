@@ -23,6 +23,10 @@ modifyJsons {
     //more modifications if needed
 }
 ```
+Run
+> ./gradlew modifyJsons
+
+to perform operations.
 
 ## Input data format
 
