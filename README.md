@@ -8,7 +8,7 @@ To add the plugin to your project:
 ```
 plugins {
     ...
-    id("com.cryosleeper.gradle.json-modification") version "0.1.1"
+    id("io.github.cryosleeper.gradle.json-modification") version "0.1.1"
 }
 ```
 
