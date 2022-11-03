@@ -5,8 +5,8 @@ plugins {
     id 'com.gradle.plugin-publish' version '1.0.0'
 }
 
-group 'com.cryosleeper.gradle'
-version '0.2.0'
+group 'io.github.cryosleeper.gradle'
+version '0.3.0'
 
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
@@ -29,10 +29,10 @@ pluginBundle {
 gradlePlugin {
     plugins {
         jsonMod {
-            id = "com.cryosleeper.gradle.json-modification"
+            id = "io.github.cryosleeper.gradle.json-modification"
             displayName = 'Plugin for modifying JSON files using JsonPath'
             description = 'This plugin allows to change JSON files using JsonPath:<new value> dictionaries'
-            implementationClass = 'com.cryosleeper.gradle.jsonmod.JsonModificationPlugin'
+            implementationClass = 'io.github.cryosleeper.gradle.jsonmod.JsonModificationPlugin'
         }
     }
 }

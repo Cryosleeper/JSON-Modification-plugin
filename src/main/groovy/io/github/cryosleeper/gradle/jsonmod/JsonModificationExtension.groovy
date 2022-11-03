@@ -1,4 +1,4 @@
-package com.cryosleeper.gradle.jsonmod
+package io.github.cryosleeper.gradle.jsonmod
 
 abstract class JsonModificationExtension {
 

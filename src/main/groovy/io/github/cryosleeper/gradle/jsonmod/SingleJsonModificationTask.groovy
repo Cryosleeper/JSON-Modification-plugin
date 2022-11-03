@@ -1,4 +1,4 @@
-package com.cryosleeper.gradle.jsonmod
+package io.github.cryosleeper.gradle.jsonmod
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input

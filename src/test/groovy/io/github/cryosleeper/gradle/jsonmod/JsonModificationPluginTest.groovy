@@ -1,4 +1,4 @@
-package com.cryosleeper.gradle.jsonmod
+package io.github.cryosleeper.gradle.jsonmod
 
 import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Specification
@@ -15,7 +15,7 @@ class JsonModificationPluginTest extends Specification {
         buildFile = new File(testProjectDir, 'build.gradle')
         buildFile << """
             plugins {
-                id 'com.cryosleeper.gradle.json-modification'
+                id 'io.github.cryosleeper.gradle.json-modification'
             }
         """
     }
