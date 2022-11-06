@@ -46,13 +46,11 @@ abstract class JsonModificationTask extends DefaultTask {
     void makeSureEntryExists(DocumentContext input, String path) {
         path = path.replace(".['", ".").replace("']", "").replace("['", "")
         String key = path.split("[.]").last()
-        System.err.println("Adding key $key")
         String parent = path.substring(0, path.lastIndexOf(key))
         if (parent.endsWith(".")) {
             parent = parent.substring(0, parent.length()-1)
         }
         parent = convertToJsonPath(parent)
-        System.err.println("Adding path $parent")
         if (!JsonPath.isPathDefinite(path)) {
             System.err.println("Path ${path} is not definite, can't create an entry if required!")
         }
