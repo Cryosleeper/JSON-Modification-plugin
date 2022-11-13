@@ -9,12 +9,14 @@ class JsonModificationPlugin implements Plugin<Project> {
         project.extensions.create("modifyJsons", JsonModificationExtension)
 
         project.tasks.register("modifyJsons", JsonModificationTask) {
+            setGroup("json modification")
             isDeleting = project.modifyJsons.allowDelete
             isAdding = project.modifyJsons.allowAdd
             modifications = project.modifyJsons.modifications
         }
 
         project.tasks.register("modifySingleJson", SingleJsonModificationTask) {
+            setGroup("json modification")
             //TODO
         }
     }
