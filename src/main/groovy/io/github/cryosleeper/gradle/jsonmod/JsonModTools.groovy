@@ -47,6 +47,7 @@ class JsonModTools {
             case JsonNodeType.BOOLEAN: input.set(modifiedKey, value.booleanValue()); break
             case JsonNodeType.NUMBER: input.set(modifiedKey, value.numberValue()); break
             case JsonNodeType.STRING: input.set(modifiedKey, value.textValue()); break
+            case JsonNodeType.OBJECT: input.set(modifiedKey, value); break
             default: System.err.println("Modification failed for key ${key} due to using an unsupported value type")
         }
     }

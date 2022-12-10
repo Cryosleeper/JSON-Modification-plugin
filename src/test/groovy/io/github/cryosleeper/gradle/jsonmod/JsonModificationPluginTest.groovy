@@ -222,7 +222,7 @@ class JsonModificationPluginTest extends Specification {
         File input = new File(testProjectDir, 'input.json')
         input << '{"key1": "old value 1", "key2": "old value 2", "key3": {"inner_key": "old value 3"}}'
         File diff = new File(testProjectDir, 'diff.json')
-        diff << '{"wrongkey": "some value", "key1": {"key": "value"}, "key2": "new value 2"}'
+        diff << '{"wrongkey": "some value", "key1": [{"key": "value"}], "key2": "new value 2"}'
         String output = 'output.json'
 
         buildFile << """
@@ -352,6 +352,108 @@ class JsonModificationPluginTest extends Specification {
 
         File outputFile = new File(testProjectDir, output)
         outputFile.text == '{"key1":"value1","key2":{"innerKey":"innerValue","innerKey3":{"innerInnerKey":"innerInnerValue"},"innerKey2":"innerValue2"},"key3":"value3"}'
+    }
+
+    def "Add empty object"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"oldKey":"oldValue"}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"keyObject":{}}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"oldKey":"oldValue","keyObject":{}}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"oldKey":"oldValue","keyObject":{}}'
+    }
+
+    def "Add non-empty object"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"oldKey":"oldValue"}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"keyObject":{"field":"value"}}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"oldKey":"oldValue","keyObject":{"field":"value"}}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"oldKey":"oldValue","keyObject":{"field":"value"}}'
+    }
+
+    def "Add object with subobject"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"oldKey":"oldValue"}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"keyObject":{"internal":{"field":"value"}}}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"oldKey":"oldValue","keyObject":{"internal":{"field":"value"}}}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"oldKey":"oldValue","keyObject":{"internal":{"field":"value"}}}'
     }
 
     def "Remove items from an array"() {
