@@ -456,6 +456,74 @@ class JsonModificationPluginTest extends Specification {
         outputFile.text == '{"oldKey":"oldValue","keyObject":{"internal":{"field":"value"}}}'
     }
 
+    def "Add empty array"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"oldKey":"oldValue"}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"keyArray":[]}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"oldKey":"oldValue","keyArray":[]}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"oldKey":"oldValue","keyArray":[]}'
+    }
+
+    def "Add non-empty array"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"oldKey":"oldValue"}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"keyArray":[{"key":"value"}]}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"oldKey":"oldValue","keyArray":[{"key":"value"}]}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"oldKey":"oldValue","keyArray":[{"key":"value"}]}'
+    }
+
     def "Remove items from an array"() {
         given:
         File input = new File(testProjectDir, 'input.json')
