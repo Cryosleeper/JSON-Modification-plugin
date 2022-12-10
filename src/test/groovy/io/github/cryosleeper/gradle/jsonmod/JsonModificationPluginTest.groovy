@@ -222,7 +222,7 @@ class JsonModificationPluginTest extends Specification {
         File input = new File(testProjectDir, 'input.json')
         input << '{"key1": "old value 1", "key2": "old value 2", "key3": {"inner_key": "old value 3"}}'
         File diff = new File(testProjectDir, 'diff.json')
-        diff << '{"wrongkey": "some value", "key1": [{"key": "value"}], "key2": "new value 2"}'
+        diff << '{"wrongkey": "some value", "key2": "new value 2"}'
         String output = 'output.json'
 
         buildFile << """
@@ -244,7 +244,6 @@ class JsonModificationPluginTest extends Specification {
 
         then:
         result.output.contains('Modification failed for key wrongkey with com.jayway.jsonpath.PathNotFoundException')
-        result.output.contains('Modification failed for key key1 due to using an unsupported value type')
         result.output.contains('{"key1":"old value 1","key2":"new value 2","key3":{"inner_key":"old value 3"}}')
         result.task(':modifyJsons').outcome == SUCCESS
 
