@@ -725,4 +725,63 @@ class JsonModificationPluginTest extends Specification {
         File outputFile = new File(testProjectDir, output)
         outputFile.text == '{"key1":"value1","key2":"value2","key3":{"inner_key":"value3"},"key4":[1,"2",false]}'
     }
+
+    def 'Multi variant test'() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << inputValues[0]
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << inputValues[1]
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        expect:
+        GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == inputValues[2]
+
+        where:
+        inputValues <<  [
+                            [
+                                    '{"key1":"value1"}',
+                                    '{"key2": "value2"}',
+                                    '{"key1":"value1","key2":"value2"}'
+                            ],
+                            [
+                                    '{"key1":[]}',
+                                    '{"key1[5]":"5","key2":[1, "2", true]}',
+                                    '{"key1":[null,null,null,null,null,"5"],"key2":[1,"2",true]}'
+                            ],
+                            [
+                                    '{}',
+                                    '{"key1":[],"key1[0]":[],"key1[0][0]":[],"key1[0][0][0]":0}',
+                                    '{"key1":[[[0]]]}'
+                            ],
+                            [
+                                    '{}',
+                                    '{"key1":[],"key1[1]":[],"key1[1][2]":[],"key1[1][2][3]":4}',
+                                    '{"key1":[null,[null,null,[null,null,null,4]]]}'
+                            ],
+                            [
+                                    '{}',
+                                    '{"key1":[],"key1[1]":[],"key1[1][2]":["0"],"key1[1][2][3]":4}',
+                                    '{"key1":[null,[null,null,["0",null,null,4]]]}'
+                            ]
+
+                        ]
+    }
 }
