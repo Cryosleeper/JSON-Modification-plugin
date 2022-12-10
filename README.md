@@ -101,6 +101,7 @@ You can also add entries. Make sure a path to the new key doesn't contain non-ex
     "newKey": {"key":"Value"},
     "newArray": [1, 2, 3]
 }
+```
 
 By default it will fail with
 > Modification failed for key newKey with com.jayway.jsonpath.PathNotFoundException
