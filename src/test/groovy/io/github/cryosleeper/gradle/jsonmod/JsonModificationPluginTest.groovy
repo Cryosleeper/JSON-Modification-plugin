@@ -523,39 +523,107 @@ class JsonModificationPluginTest extends Specification {
         outputFile.text == '{"oldKey":"oldValue","keyArray":[{"key":"value"}]}'
     }
 
-//    def "Add an item to an existing array"() {
-//        given:
-//        File input = new File(testProjectDir, 'input.json')
-//        input << '{"oldKey":"oldValue","keyArray":[0, 1, 3]}'
-//        File diff = new File(testProjectDir, 'diff.json')
-//        diff << '{"keyArray[2]":2}'
-//        String output = 'output.json'
-//
-//        buildFile << """
-//            modifyJsons {
-//                allowAdd = true
-//                modification {
-//                    input = file('${input.getName()}')
-//                    diffs = [file('${diff.getName()}')]
-//                    output = file('$output')
-//                }
-//            }
-//        """
-//
-//        when:
-//        def result = GradleRunner.create()
-//                .withProjectDir(testProjectDir)
-//                .withArguments('modifyJsons')
-//                .withPluginClasspath()
-//                .build()
-//
-//        then:
-//        result.output.contains('{"oldKey":"oldValue","keyArray":[0, 1, 2]}')
-//        result.task(':modifyJsons').outcome == SUCCESS
-//
-//        File outputFile = new File(testProjectDir, output)
-//        outputFile.text == '{"oldKey":"oldValue","keyArray":[0, 1, 2]}'
-//    }
+    def "Add an item to an existing array"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"oldKey":"oldValue","keyArray":[0, 1]}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"keyArray[2]":2}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"oldKey":"oldValue","keyArray":[0,1,2]}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"oldKey":"oldValue","keyArray":[0,1,2]}'
+    }
+
+    def "Add an array and an item to it"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"oldKey":"oldValue"}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"keyArray":[0, 1],"keyArray[2]":2}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"oldKey":"oldValue","keyArray":[0,1,2]}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"oldKey":"oldValue","keyArray":[0,1,2]}'
+    }
+
+    def "Add an array and an item too far ahead to it"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"oldKey":"oldValue"}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"keyArray":[0, 1],"keyArray[10]":10}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"oldKey":"oldValue","keyArray":[0,1,null,null,null,null,null,null,null,null,10]}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"oldKey":"oldValue","keyArray":[0,1,null,null,null,null,null,null,null,null,10]}'
+    }
 
     def "Remove items from an array"() {
         given:
