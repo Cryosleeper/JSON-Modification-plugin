@@ -95,6 +95,29 @@ modifyJsons {
 }
 ```
 
+You can also add entries. Make sure a path to the new key doesn't contain non-existing keys.
+```
+{
+    "newKey": {"key":"Value"},
+    "newArray": [1, 2, 3]
+}
+
+By default it will fail with
+> Modification failed for key newKey with com.jayway.jsonpath.PathNotFoundException
+
+To allow adding, add _allowAdd_ to the config:
+```
+modifyJsons {
+    allowAdd true
+    modification {
+        input = file('input.json')
+        diffs = [file('diff.json')]
+        output = file('output.json')
+    }
+}
+```
+
+
 ## Acknowledgements
 
 This plugin uses [Jayway JsonPath](https://github.com/json-path/JsonPath) and [Jackson](https://github.com/FasterXML/jackson). JsonPath [was proposed by Stefan Goessner](https://goessner.net/articles/JsonPath/)
