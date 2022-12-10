@@ -39,17 +39,13 @@ class JsonModTools {
     static void applySingleChange(DocumentContext input, String key, JsonNode value, boolean isDeleting) {
         String modifiedKey = convertToJsonPath(key)
         switch (value.nodeType) {
+            case JsonNodeType.MISSING: System.err.println("Modification failed for key ${key} due to using a missing value type"); break
             case JsonNodeType.NULL:
                 if (isDeleting)
                     input.delete(modifiedKey)
                 else
                     System.err.println("Deletion failed for key ${key} - deletion forbidden!"); break
-            case JsonNodeType.BOOLEAN: input.set(modifiedKey, value.booleanValue()); break
-            case JsonNodeType.NUMBER: input.set(modifiedKey, value.numberValue()); break
-            case JsonNodeType.STRING: input.set(modifiedKey, value.textValue()); break
-            case JsonNodeType.OBJECT: input.set(modifiedKey, value); break
-            case JsonNodeType.ARRAY: input.set(modifiedKey, value); break
-            default: System.err.println("Modification failed for key ${key} due to using an unsupported value type")
+            default: input.set(modifiedKey, value); break
         }
     }
 
