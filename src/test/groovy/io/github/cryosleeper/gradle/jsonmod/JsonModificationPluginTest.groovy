@@ -243,7 +243,7 @@ class JsonModificationPluginTest extends Specification {
                 .build()
 
         then:
-        result.output.contains('Modification failed for key wrongkey with com.jayway.jsonpath.PathNotFoundException')
+        result.output.contains('Modification failed for key $[\'wrongkey\'] with com.jayway.jsonpath.PathNotFoundException')
         result.output.contains('{"key1":"old value 1","key2":"new value 2","key3":{"inner_key":"old value 3"}}')
         result.task(':modifyJsons').outcome == SUCCESS
 
@@ -311,7 +311,7 @@ class JsonModificationPluginTest extends Specification {
                 .build()
 
         then:
-        result.output.contains('Deletion failed for key key1 - deletion forbidden!')
+        result.output.contains('Deletion failed for key $[\'key1\'] - deletion forbidden!')
         result.output.contains('{"key1":"value1","key2":"value2"}')
         result.task(':modifyJsons').outcome == SUCCESS
 
@@ -523,6 +523,40 @@ class JsonModificationPluginTest extends Specification {
         outputFile.text == '{"oldKey":"oldValue","keyArray":[{"key":"value"}]}'
     }
 
+//    def "Add an item to an existing array"() {
+//        given:
+//        File input = new File(testProjectDir, 'input.json')
+//        input << '{"oldKey":"oldValue","keyArray":[0, 1, 3]}'
+//        File diff = new File(testProjectDir, 'diff.json')
+//        diff << '{"keyArray[2]":2}'
+//        String output = 'output.json'
+//
+//        buildFile << """
+//            modifyJsons {
+//                allowAdd = true
+//                modification {
+//                    input = file('${input.getName()}')
+//                    diffs = [file('${diff.getName()}')]
+//                    output = file('$output')
+//                }
+//            }
+//        """
+//
+//        when:
+//        def result = GradleRunner.create()
+//                .withProjectDir(testProjectDir)
+//                .withArguments('modifyJsons')
+//                .withPluginClasspath()
+//                .build()
+//
+//        then:
+//        result.output.contains('{"oldKey":"oldValue","keyArray":[0, 1, 2]}')
+//        result.task(':modifyJsons').outcome == SUCCESS
+//
+//        File outputFile = new File(testProjectDir, output)
+//        outputFile.text == '{"oldKey":"oldValue","keyArray":[0, 1, 2]}'
+//    }
+
     def "Remove items from an array"() {
         given:
         File input = new File(testProjectDir, 'input.json')
@@ -562,11 +596,45 @@ class JsonModificationPluginTest extends Specification {
         File input = new File(testProjectDir, 'input.json')
         input << '{"key1": "old value 1", "key2": "old value 2", "key3": {"inner_key": "old value 3"}, "key4": [1, "2", true]}'
         File diff = new File(testProjectDir, 'diff.json')
-        diff << '{"$.key1":  "value1", "[\'key2\']": "value2", "$[\'key3\'].[\'inner_key\']": "value3", "\$[\'key4\'][2]": false}'
+        diff << '{"$.key1":  "value1", "[\'key2\']": "value2", "$.[\'key3\'][\'inner_key\']": "value3", "$.[\'key4\'][2]": false}'
         String output = 'output.json'
 
         buildFile << """
             modifyJsons {
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"key1":"value1","key2":"value2","key3":{"inner_key":"value3"},"key4":[1,"2",false]}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"key1":"value1","key2":"value2","key3":{"inner_key":"value3"},"key4":[1,"2",false]}'
+    }
+
+    def "Diff with different JsonPath formats, adding allowed"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"key1": "old value 1", "key2": "old value 2", "key3": {"inner_key": "old value 3"}, "key4": [1, "2", true]}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"$.key1":  "value1", "[\'key2\']": "value2", "$[\'key3\'][\'inner_key\']": "value3", "$[\'key4\'][2]": false}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
                 modification {
                     input = file('${input.getName()}')
                     diffs = [file('${diff.getName()}')]
