@@ -726,7 +726,65 @@ class JsonModificationPluginTest extends Specification {
         outputFile.text == '{"key1":"value1","key2":"value2","key3":{"inner_key":"value3"},"key4":[1,"2",false]}'
     }
 
-    def 'Multi variant test'() {
+    def 'Multi variant test with no structure change'() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << inputValues[0]
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << inputValues[1]
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        expect:
+        GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == inputValues[2]
+
+        where:
+        inputValues <<  [
+                [
+                        '{"key1":"value1"}',
+                        '{"key2": "value2"}',
+                        '{"key1":"value1"}'
+                ],
+                [
+                        '{"key1":[null]}',
+                        '{"key1[0]":"5"}',
+                        '{"key1":["5"]}'
+                ],
+                [
+                        '{"key1":["5"]}',
+                        '{"key1[0]":null}',
+                        '{"key1":["5"]}'
+                ],
+                [
+                        '{"key1":[]}',
+                        '{"key1[5]":"5","key2":[1, "2", true]}',
+                        '{"key1":[]}'
+                ],
+                [
+                        '{}',
+                        '{"key1":[],"key1[1]":[],"key1[1][2]":["0"],"key1[1][2][3]":4}',
+                        '{}'
+                ]
+
+        ]
+    }
+
+    def 'Multi variant test with addition'() {
         given:
         File input = new File(testProjectDir, 'input.json')
         input << inputValues[0]
@@ -783,5 +841,102 @@ class JsonModificationPluginTest extends Specification {
                             ]
 
                         ]
+    }
+
+    def 'Multi variant test with deletion'() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << inputValues[0]
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << inputValues[1]
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                modification {
+                    allowDelete = true
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        expect:
+        GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == inputValues[2]
+
+        where:
+        inputValues <<  [
+                [
+                        '{"key1":"value1"}',
+                        '{"key2": "value2"}',
+                        '{"key1":"value1"}'
+                ],
+                [
+                        '{"key1":[null]}',
+                        '{"key1[0]":"5"}',
+                        '{"key1":["5"]}'
+                ],
+                [
+                        '{"key1":["5"]}',
+                        '{"key1[0]":null}',
+                        '{"key1":[]}'
+                ]
+        ]
+    }
+
+    def 'Multi variant test with full modification'() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << inputValues[0]
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << inputValues[1]
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                modification {
+                    allowAdd = true
+                    allowDelete = true
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        expect:
+        GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == inputValues[2]
+
+        where:
+        inputValues <<  [
+                [
+                        '{"key1":"value1"}',
+                        '{"key1":null,"key2": "value2"}',
+                        '{"key2":"value2"}'
+                ],
+                [
+                        '{"key1":[]}',
+                        '{"key1[0]":"5"}',
+                        '{"key1":["5"]}'
+                ],
+                [
+                        '{"key1":["5"]}',
+                        '{"key1[0]":null}',
+                        '{"key1":[]}'
+                ]
+        ]
     }
 }
