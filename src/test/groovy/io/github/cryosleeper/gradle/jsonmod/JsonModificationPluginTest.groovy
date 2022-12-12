@@ -243,7 +243,7 @@ class JsonModificationPluginTest extends Specification {
                 .build()
 
         then:
-        result.output.contains('Modification failed for key wrongkey with com.jayway.jsonpath.PathNotFoundException')
+        result.output.contains('Modification failed for key $[\'wrongkey\'] with com.jayway.jsonpath.PathNotFoundException')
         result.output.contains('{"key1":"old value 1","key2":"new value 2","key3":{"inner_key":"old value 3"}}')
         result.task(':modifyJsons').outcome == SUCCESS
 
@@ -311,7 +311,7 @@ class JsonModificationPluginTest extends Specification {
                 .build()
 
         then:
-        result.output.contains('Deletion failed for key key1 - deletion forbidden!')
+        result.output.contains('Deletion failed for key $[\'key1\'] - deletion forbidden!')
         result.output.contains('{"key1":"value1","key2":"value2"}')
         result.task(':modifyJsons').outcome == SUCCESS
 
@@ -523,6 +523,108 @@ class JsonModificationPluginTest extends Specification {
         outputFile.text == '{"oldKey":"oldValue","keyArray":[{"key":"value"}]}'
     }
 
+    def "Add an item to an existing array"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"oldKey":"oldValue","keyArray":[0, 1]}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"keyArray[2]":2}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"oldKey":"oldValue","keyArray":[0,1,2]}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"oldKey":"oldValue","keyArray":[0,1,2]}'
+    }
+
+    def "Add an array and an item to it"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"oldKey":"oldValue"}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"keyArray":[0, 1],"keyArray[2]":2}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"oldKey":"oldValue","keyArray":[0,1,2]}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"oldKey":"oldValue","keyArray":[0,1,2]}'
+    }
+
+    def "Add an array and an item too far ahead to it"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"oldKey":"oldValue"}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"keyArray":[0, 1],"keyArray[10]":10}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"oldKey":"oldValue","keyArray":[0,1,null,null,null,null,null,null,null,null,10]}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"oldKey":"oldValue","keyArray":[0,1,null,null,null,null,null,null,null,null,10]}'
+    }
+
     def "Remove items from an array"() {
         given:
         File input = new File(testProjectDir, 'input.json')
@@ -562,7 +664,7 @@ class JsonModificationPluginTest extends Specification {
         File input = new File(testProjectDir, 'input.json')
         input << '{"key1": "old value 1", "key2": "old value 2", "key3": {"inner_key": "old value 3"}, "key4": [1, "2", true]}'
         File diff = new File(testProjectDir, 'diff.json')
-        diff << '{"$.key1":  "value1", "[\'key2\']": "value2", "$[\'key3\'].[\'inner_key\']": "value3", "\$[\'key4\'][2]": false}'
+        diff << '{"$.key1":  "value1", "[\'key2\']": "value2", "$.[\'key3\'][\'inner_key\']": "value3", "$.[\'key4\'][2]": false}'
         String output = 'output.json'
 
         buildFile << """
@@ -588,5 +690,281 @@ class JsonModificationPluginTest extends Specification {
 
         File outputFile = new File(testProjectDir, output)
         outputFile.text == '{"key1":"value1","key2":"value2","key3":{"inner_key":"value3"},"key4":[1,"2",false]}'
+    }
+
+    def "Diff with different JsonPath formats, adding allowed"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"key1": "old value 1", "key2": "old value 2", "key3": {"inner_key": "old value 3"}, "key4": [1, "2", true]}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"$.key1":  "value1", "[\'key2\']": "value2", "$[\'key3\'][\'inner_key\']": "value3", "$[\'key4\'][2]": false}'
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('{"key1":"value1","key2":"value2","key3":{"inner_key":"value3"},"key4":[1,"2",false]}')
+        result.task(':modifyJsons').outcome == SUCCESS
+
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"key1":"value1","key2":"value2","key3":{"inner_key":"value3"},"key4":[1,"2",false]}'
+    }
+
+    def 'Multi variant test with no structure change'() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << inputValues[0]
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << inputValues[1]
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        expect:
+        GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == inputValues[2]
+
+        where:
+        inputValues <<  [
+                [
+                        '{"key1":"value1"}',
+                        '{"key2": "value2"}',
+                        '{"key1":"value1"}'
+                ],
+                [
+                        '{"key1":[null]}',
+                        '{"key1[0]":"5"}',
+                        '{"key1":["5"]}'
+                ],
+                [
+                        '{"key1":["5"]}',
+                        '{"key1[0]":null}',
+                        '{"key1":["5"]}'
+                ],
+                [
+                        '{"key1":[]}',
+                        '{"key1[5]":"5","key2":[1, "2", true]}',
+                        '{"key1":[]}'
+                ],
+                [
+                        '{}',
+                        '{"key1":[],"key1[1]":[],"key1[1][2]":["0"],"key1[1][2][3]":4}',
+                        '{}'
+                ],
+                [
+                        '{"key1": "value1", "objectKey":{"innerKey": "innerValue"}, "keyToDelete": 2}',
+                        '{"key1": "new value 1", "objectKey.innerKey": "new inner value", "objectKey.innerObject": {"arrayKey": []}, "objectKey.innerObject.arrayKey[1]":true, "keyToDelete":null}',
+                        '{"key1":"new value 1","objectKey":{"innerKey":"new inner value"},"keyToDelete":2}'
+                ]
+        ]
+    }
+
+    def 'Multi variant test with addition'() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << inputValues[0]
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << inputValues[1]
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        expect:
+        GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == inputValues[2]
+
+        where:
+        inputValues <<  [
+                            [
+                                    '{"key1":"value1"}',
+                                    '{"key2": "value2"}',
+                                    '{"key1":"value1","key2":"value2"}'
+                            ],
+                            [
+                                    '{"key1":[]}',
+                                    '{"key1[5]":"5","key2":[1, "2", true]}',
+                                    '{"key1":[null,null,null,null,null,"5"],"key2":[1,"2",true]}'
+                            ],
+                            [
+                                    '{}',
+                                    '{"key1":[],"key1[0]":[],"key1[0][0]":[],"key1[0][0][0]":0}',
+                                    '{"key1":[[[0]]]}'
+                            ],
+                            [
+                                    '{}',
+                                    '{"key1":[],"key1[1]":[],"key1[1][2]":[],"key1[1][2][3]":4}',
+                                    '{"key1":[null,[null,null,[null,null,null,4]]]}'
+                            ],
+                            [
+                                    '{}',
+                                    '{"key1":[],"key1[1]":[],"key1[1][2]":["0"],"key1[1][2][3]":4}',
+                                    '{"key1":[null,[null,null,["0",null,null,4]]]}'
+                            ],
+//                            [
+//                                    '{"key1": "value1", "objectKey":{"innerKey": "innerValue"}, "keyToDelete": 2}',
+//                                    '{"key1": "new value 1", "objectKey.innerKey": "new inner value", "objectKey.innerObject": {"arrayKey": []}, "objectKey.innerObject.arrayKey[1]":true, "keyToDelete":null}',
+//                                    '{"key1":"new value 1","objectKey":{"innerKey":"new inner value","innerObject":{"arrayKey":[null,true]}},"keyToDelete":2}'
+//                            ],
+                            [
+                                    '{"key1": "value1", "objectKey":{"innerKey": "innerValue"}, "keyToDelete": 2}',
+                                    '{"key1": "new value 1", "objectKey.innerKey": "new inner value", "objectKey.innerObject": {"arrayKey": [null, true]}, "keyToDelete":null}',
+                                    '{"key1":"new value 1","objectKey":{"innerKey":"new inner value","innerObject":{"arrayKey":[null,true]}},"keyToDelete":2}'
+                            ]
+                        ]
+    }
+
+    def 'Multi variant test with deletion'() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << inputValues[0]
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << inputValues[1]
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                modification {
+                    allowDelete = true
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        expect:
+        GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == inputValues[2]
+
+        where:
+        inputValues <<  [
+                [
+                        '{"key1":"value1"}',
+                        '{"key2": "value2"}',
+                        '{"key1":"value1"}'
+                ],
+                [
+                        '{"key1":[null]}',
+                        '{"key1[0]":"5"}',
+                        '{"key1":["5"]}'
+                ],
+                [
+                        '{"key1":["5"]}',
+                        '{"key1[0]":null}',
+                        '{"key1":[]}'
+                ],
+                [
+                        '{"key1": "value1", "objectKey":{"innerKey": "innerValue"}, "keyToDelete": 2}',
+                        '{"key1": "new value 1", "objectKey.innerKey": "new inner value", "objectKey.innerObject": {"arrayKey": []}, "objectKey.innerObject.arrayKey[1]":true, "keyToDelete":null}',
+                        '{"key1":"new value 1","objectKey":{"innerKey":"new inner value"}}'
+                ]
+        ]
+    }
+
+    def 'Multi variant test with full modification'() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << inputValues[0]
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << inputValues[1]
+        String output = 'output.json'
+
+        buildFile << """
+            modifyJsons {
+                modification {
+                    allowAdd = true
+                    allowDelete = true
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        expect:
+        GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == inputValues[2]
+
+        where:
+        inputValues <<  [
+                [
+                        '{"key1":"value1"}',
+                        '{"key1":null,"key2": "value2"}',
+                        '{"key2":"value2"}'
+                ],
+                [
+                        '{"key1":[]}',
+                        '{"key1[0]":"5"}',
+                        '{"key1":["5"]}'
+                ],
+                [
+                        '{"key1":["5"]}',
+                        '{"key1[0]":null}',
+                        '{"key1":[]}'
+                ],
+//                [
+//                        '{"key1": "value1", "objectKey":{"innerKey": "innerValue"}, "keyToDelete": 2}',
+//                        '{"key1": "new value 1", "objectKey.innerKey": "new inner value", "objectKey.innerObject": {"arrayKey": []}, "objectKey.innerObject.arrayKey[1]":true, "keyToDelete":null}',
+//                        '{"key1":"new value 1","objectKey":{"innerKey":"new inner value","innerObject":{"arrayKey":[null,true]}}}'
+//                ],
+                [
+                        '{"key1": "value1", "objectKey":{"innerKey": "innerValue"}, "keyToDelete": 2}',
+                        '{"key1": "new value 1", "objectKey.innerKey": "new inner value", "objectKey.innerObject": {"arrayKey": [null, true]}, "keyToDelete":null}',
+                        '{"key1":"new value 1","objectKey":{"innerKey":"new inner value","innerObject":{"arrayKey":[null,true]}}}'
+                ]
+        ]
     }
 }
