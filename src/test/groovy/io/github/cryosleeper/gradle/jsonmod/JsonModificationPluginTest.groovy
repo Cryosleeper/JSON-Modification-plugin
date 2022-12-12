@@ -779,8 +779,12 @@ class JsonModificationPluginTest extends Specification {
                         '{}',
                         '{"key1":[],"key1[1]":[],"key1[1][2]":["0"],"key1[1][2][3]":4}',
                         '{}'
+                ],
+                [
+                        '{"key1": "value1", "objectKey":{"innerKey": "innerValue"}, "keyToDelete": 2}',
+                        '{"key1": "new value 1", "objectKey.innerKey": "new inner value", "objectKey.innerObject": {"arrayKey": []}, "objectKey.innerObject.arrayKey[1]":true, "keyToDelete":null}',
+                        '{"key1":"new value 1","objectKey":{"innerKey":"new inner value"},"keyToDelete":2}'
                 ]
-
         ]
     }
 
@@ -838,8 +842,12 @@ class JsonModificationPluginTest extends Specification {
                                     '{}',
                                     '{"key1":[],"key1[1]":[],"key1[1][2]":["0"],"key1[1][2][3]":4}',
                                     '{"key1":[null,[null,null,["0",null,null,4]]]}'
+                            ],
+                            [
+                                    '{"key1": "value1", "objectKey":{"innerKey": "innerValue"}, "keyToDelete": 2}',
+                                    '{"key1": "new value 1", "objectKey.innerKey": "new inner value", "objectKey.innerObject": {"arrayKey": []}, "objectKey.innerObject.arrayKey[1]":true, "keyToDelete":null}',
+                                    '{"key1":"new value 1","objectKey":{"innerKey":"new inner value","innerObject":{"arrayKey":[null,true]}},"keyToDelete":2}'
                             ]
-
                         ]
     }
 
@@ -887,6 +895,11 @@ class JsonModificationPluginTest extends Specification {
                         '{"key1":["5"]}',
                         '{"key1[0]":null}',
                         '{"key1":[]}'
+                ],
+                [
+                        '{"key1": "value1", "objectKey":{"innerKey": "innerValue"}, "keyToDelete": 2}',
+                        '{"key1": "new value 1", "objectKey.innerKey": "new inner value", "objectKey.innerObject": {"arrayKey": []}, "objectKey.innerObject.arrayKey[1]":true, "keyToDelete":null}',
+                        '{"key1":"new value 1","objectKey":{"innerKey":"new inner value"}}'
                 ]
         ]
     }
@@ -936,6 +949,11 @@ class JsonModificationPluginTest extends Specification {
                         '{"key1":["5"]}',
                         '{"key1[0]":null}',
                         '{"key1":[]}'
+                ],
+                [
+                        '{"key1": "value1", "objectKey":{"innerKey": "innerValue"}, "keyToDelete": 2}',
+                        '{"key1": "new value 1", "objectKey.innerKey": "new inner value", "objectKey.innerObject": {"arrayKey": []}, "objectKey.innerObject.arrayKey[1]":true, "keyToDelete":null}',
+                        '{"key1":"new value 1","objectKey":{"innerKey":"new inner value","innerObject":{"arrayKey":[null,true]}}}'
                 ]
         ]
     }
