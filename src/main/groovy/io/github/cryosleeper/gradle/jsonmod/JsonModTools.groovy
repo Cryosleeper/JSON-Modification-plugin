@@ -14,10 +14,7 @@ class JsonModTools {
         node.fields().forEachRemaining {
             String key = JsonPath.compile(it.key).path
             try {
-                if (isAdding) {
-                    makeSureEntryExists(parsedInput, key)
-                }
-                applySingleChange(parsedInput, key, it.value, isDeleting)
+                applySingleChange(parsedInput, key, it.value, isAdding, isDeleting)
             } catch (Exception e) {
                 System.err.println("Modification failed for key ${key} with $e")
             }
@@ -45,7 +42,7 @@ class JsonModTools {
         }
     }
 
-    static void applySingleChange(DocumentContext input, String key, JsonNode value, boolean isDeleting) {
+    static void applySingleChange(DocumentContext input, String key, JsonNode value, boolean isAdding, boolean isDeleting) {
         switch (value.nodeType) {
             case JsonNodeType.MISSING: System.err.println("Modification failed for key ${key} due to using a missing value type"); break
             case JsonNodeType.NULL:
@@ -53,8 +50,16 @@ class JsonModTools {
                     input.delete(key)
                 else
                     System.err.println("Deletion failed for key ${key} - deletion forbidden!"); break
-            case JsonNodeType.ARRAY: input.set(key, ((ArrayNode)value).toList()); break
-            default: input.set(key, value); break
+            default:
+                if (isAdding) {
+                    makeSureEntryExists(input, key)
+                }
+                if (value.nodeType == JsonNodeType.ARRAY) {
+                    input.set(key, ((ArrayNode)value).toList())
+                } else {
+                    input.set(key, value)
+                }
+                break
         }
     }
 }
