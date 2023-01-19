@@ -22,10 +22,27 @@ abstract class JsonModificationTask extends DefaultTask {
 
     @TaskAction
     def modify() {
-        modifications.forEach {
+        for (def it : modifications) {
+            if (it.input == null) {
+                System.err.println('Modification without input file was encountered!')
+                continue
+            }
+            if (it.output == null) {
+                System.err.println('Modification without output file was encountered!')
+                continue
+            }
+            if (!it.input.exists()) {
+                System.err.println("Input file ${it.input.name} was not found!")
+                continue
+            }
             Configuration configuration = Configuration.defaultConfiguration().jsonProvider(new JacksonJsonProvider())
             DocumentContext parsedInput = JsonPath.using(configuration).parse(it.input.text)
-            it.diffs.forEach { diff ->
+            for (def diff : it.diffs) {
+                if (diff == null) { continue }
+                if (!diff.exists()) {
+                    System.err.println("Diff file ${diff.name} was not found!")
+                    continue
+                }
                 JsonModTools.applyDiff(parsedInput, diff.text, isAdding.get(), isDeleting.get())
             }
             String result = parsedInput.jsonString()

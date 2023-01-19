@@ -29,7 +29,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 modification {
                     input = file('${input.getName()}')
                     diffs = [file('${diff.getName()}')]
@@ -74,7 +74,7 @@ class JsonModificationPluginTest extends Specification {
         String output3 = 'output3.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 modification {
                     input = file('${input1.getName()}')
                     diffs = [file('${diff1.getName()}')]
@@ -129,7 +129,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output3.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 modification {
                     input = file('${input.getName()}')
                     diffs = [file('${diff1.getName()}'), file('${diff2.getName()}'), file('${diff3.getName()}')]
@@ -160,7 +160,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output3.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 modification {
                     input = file('${input.getName()}')
                     diffs = []
@@ -193,7 +193,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 modification {
                     input = file('${input.getName()}')
                     diffs = [file('${diff.getName()}')]
@@ -226,7 +226,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 modification {
                     input = file('${input.getName()}')
                     diffs = [file('${diff.getName()}')]
@@ -260,7 +260,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowDelete = true
                 modification {
                     input = file('${input.getName()}')
@@ -294,7 +294,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 modification {
                     input = file('${input.getName()}')
                     diffs = [file('${diff.getName()}')]
@@ -328,7 +328,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowAdd = true
                 modification {
                     input = file('${input.getName()}')
@@ -362,7 +362,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowAdd = true
                 modification {
                     input = file('${input.getName()}')
@@ -396,7 +396,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowAdd = true
                 modification {
                     input = file('${input.getName()}')
@@ -430,7 +430,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowAdd = true
                 modification {
                     input = file('${input.getName()}')
@@ -464,7 +464,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowAdd = true
                 modification {
                     input = file('${input.getName()}')
@@ -498,7 +498,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowAdd = true
                 modification {
                     input = file('${input.getName()}')
@@ -532,7 +532,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowAdd = true
                 modification {
                     input = file('${input.getName()}')
@@ -566,7 +566,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowAdd = true
                 modification {
                     input = file('${input.getName()}')
@@ -600,7 +600,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowAdd = true
                 modification {
                     input = file('${input.getName()}')
@@ -634,7 +634,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowDelete = true
                 modification {
                     input = file('${input.getName()}')
@@ -668,7 +668,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 modification {
                     input = file('${input.getName()}')
                     diffs = [file('${diff.getName()}')]
@@ -701,7 +701,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowAdd = true
                 modification {
                     input = file('${input.getName()}')
@@ -726,6 +726,210 @@ class JsonModificationPluginTest extends Specification {
         outputFile.text == '{"key1":"value1","key2":"value2","key3":{"inner_key":"value3"},"key4":[1,"2",false]}'
     }
 
+    def "No file for input"() {
+        given:
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"key":"value"}'
+        String output = 'output.json'
+
+        buildFile << """
+            jsonsToModify {
+                allowAdd = true
+                modification {
+                    input = file('input.json')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('Input file input.json was not found!')
+        result.task(':modifyJsons').outcome == SUCCESS
+    }
+
+    def "Null file for input"() {
+        given:
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"key":"value"}'
+        String output = 'output.json'
+
+        buildFile << """
+            jsonsToModify {
+                allowAdd = true
+                modification {
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('Modification without input file was encountered!')
+        result.task(':modifyJsons').outcome == SUCCESS
+    }
+
+    def "One input bugged"() {
+        given:
+        File input1 = new File(testProjectDir, 'input1.json')
+        input1 << '{}'
+        File input3 = new File(testProjectDir, 'input3.json')
+        input3 << '{}'
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"key":"value"}'
+        String output1 = 'output1.json'
+        String output2 = 'output2.json'
+        String output3 = 'output3.json'
+
+        buildFile << """
+            jsonsToModify {
+                allowAdd = true
+                modification {
+                    input = file('${input1.name}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output1')
+                }
+                modification {
+                    input = file('input2.json')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output2')
+                }
+                modification {
+                    input = file('${input3.name}')
+                    diffs = [file('${diff.getName()}')]
+                    output = file('$output3')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        File outputFile1 = new File(testProjectDir, output1)
+        outputFile1.text == '{"key":"value"}'
+        File outputFile3 = new File(testProjectDir, output3)
+        outputFile3.text == '{"key":"value"}'
+
+        result.output.contains('Input file input2.json was not found!')
+        result.task(':modifyJsons').outcome == SUCCESS
+    }
+
+    def "No file for diff"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"key":"value"}'
+        String output = 'output.json'
+
+        buildFile << """
+            jsonsToModify {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('diff.json')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"key":"value"}'
+
+        result.output.contains('Diff file diff.json was not found!')
+        result.task(':modifyJsons').outcome == SUCCESS
+    }
+
+    def "Having one diff bugged"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << '{"key":"value"}'
+        File diff1 = new File(testProjectDir, "diff1.json")
+        diff1 << '{"key1":"value1"}'
+        File diff3 = new File(testProjectDir, "diff3.json")
+        diff3 << '{"key3":"value3"}'
+        String output = 'output.json'
+
+        buildFile << """
+            jsonsToModify {
+                allowAdd = true
+                modification {
+                    input = file('${input.getName()}')
+                    diffs = [file('${diff1.name}'), file('diff2.json'), file('${diff3.name}')]
+                    output = file('$output')
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        File outputFile = new File(testProjectDir, output)
+        outputFile.text == '{"key":"value","key1":"value1","key3":"value3"}'
+
+        result.output.contains('Diff file diff2.json was not found!')
+        result.task(':modifyJsons').outcome == SUCCESS
+    }
+
+    def "Null file for output"() {
+        given:
+        File input = new File(testProjectDir, 'input.json')
+        input << "{}"
+        File diff = new File(testProjectDir, 'diff.json')
+        diff << '{"key":"value"}'
+
+        buildFile << """
+            jsonsToModify {
+                allowAdd = true
+                modification {
+                    input = file('${input.name}')
+                    diffs = [file('${diff.getName()}')]
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('modifyJsons')
+                .withPluginClasspath()
+                .build()
+
+        then:
+        result.output.contains('Modification without output file was encountered!')
+        result.task(':modifyJsons').outcome == SUCCESS
+    }
+
     def 'Multi variant test with no structure change'() {
         given:
         File input = new File(testProjectDir, 'input.json')
@@ -735,7 +939,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 modification {
                     input = file('${input.getName()}')
                     diffs = [file('${diff.getName()}')]
@@ -797,7 +1001,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 allowAdd = true
                 modification {
                     input = file('${input.getName()}')
@@ -865,7 +1069,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 modification {
                     allowDelete = true
                     input = file('${input.getName()}')
@@ -918,7 +1122,7 @@ class JsonModificationPluginTest extends Specification {
         String output = 'output.json'
 
         buildFile << """
-            modifyJsons {
+            jsonsToModify {
                 modification {
                     allowAdd = true
                     allowDelete = true
