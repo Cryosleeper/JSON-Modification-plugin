@@ -26,13 +26,13 @@ class JsonModTools {
         String key = formattedPath.substring(formattedPath.lastIndexOf("['"))
         String possibleArrayIndex = key.find("\\[\\d+\\]\$")
         String parent = formattedPath.replace(key, "")
-        System.err.println("Path parent is $parent")
-        System.err.println("Path key is $key")
+        //System.err.println("Path parent is $parent")
+        //System.err.println("Path key is $key")
 
         if (possibleArrayIndex != null) {
             String arrayKey = formattedPath.substring(0, formattedPath.length() - possibleArrayIndex.length())
             Integer index = possibleArrayIndex.replace("[","").replace("]","").toInteger()
-            System.err.println("Path to array is $arrayKey")
+            //System.err.println("Path to array is $arrayKey")
             List arrayNode = input.read(arrayKey)
             arrayNode[index] = ""
             input.set(arrayKey, arrayNode)
