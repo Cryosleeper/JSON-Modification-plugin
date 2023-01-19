@@ -10,8 +10,8 @@ class JsonModificationPlugin implements Plugin<Project> {
 
         project.tasks.register("modifyJsons", JsonModificationTask) {
             setGroup("json modification")
-            isDeleting = project.modifyJsons.allowDelete
-            isAdding = project.modifyJsons.allowAdd
+            it.isDeleting = project.modifyJsons.allowDelete
+            it.isAdding = project.modifyJsons.allowAdd
             modifications = project.modifyJsons.modifications
         }
 

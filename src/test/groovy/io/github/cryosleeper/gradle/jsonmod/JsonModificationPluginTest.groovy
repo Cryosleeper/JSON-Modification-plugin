@@ -635,8 +635,8 @@ class JsonModificationPluginTest extends Specification {
 
         buildFile << """
             modifyJsons {
+                allowDelete = true
                 modification {
-                    allowDelete true
                     input = file('${input.getName()}')
                     diffs = [file('${diff.getName()}')]
                     output = file('$output')
