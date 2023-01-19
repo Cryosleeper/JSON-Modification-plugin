@@ -8,13 +8,13 @@ To add the plugin to your project:
 ```
 plugins {
     ...
-    id("io.github.cryosleeper.gradle.json-modification") version "0.1.1"
+    id("io.github.cryosleeper.gradle.json-modification") version "2.0.0"
 }
 ```
 
 To configure the conversion:
 ```
-modifyJsons {
+jsonsToModify {
     modification {
         input = file('input.json')
         diffs = [file('diff1.json'), file('diff2.json'), file('diff3.json')] //more if needed
