@@ -1,9 +1,16 @@
 package io.github.cryosleeper.gradle.jsonmod
 
+import org.gradle.api.provider.Property
+
 abstract class JsonModificationExtension {
 
-    abstract boolean allowDelete = false
-    abstract boolean allowAdd = false
+    abstract Property<Boolean> getAllowDelete()
+    abstract Property<Boolean> getAllowAdd()
+
+    JsonModificationExtension() {
+        allowAdd.convention(false)
+        allowDelete.convention(false)
+    }
 
     protected List<Modification> modifications = new LinkedList()
 
